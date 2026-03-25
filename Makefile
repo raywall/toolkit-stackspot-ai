@@ -12,7 +12,7 @@ run:
 	 go run samples/$(SAMPLE)/main.go
 
 test:
-	@go test -v ./...
+	@go test ./...
 
 coverage:
 	@go test -coverprofile=coverage.out ./...; \
