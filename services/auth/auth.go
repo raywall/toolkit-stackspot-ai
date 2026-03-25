@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/raywall/toolkit-stackspot-ai/pkg/clients"
@@ -28,10 +30,20 @@ func (s *AuthService) GenerateToken(ctx context.Context, creds *types.Credential
 		creds.GrantType = "client_credentials"
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, fmt.Sprintf("%s/%s/oidc/oauth/token", os.Getenv("AUTH_BASE_URL"), os.Getenv("AUTH_REALM")), creds)
+	data := url.Values{}
+	data.Set("grant_type", creds.GrantType)
+	data.Set("client_id", creds.ClientID)
+	data.Set("client_secret", creds.ClientSecret)
+
+	encodedData := data.Encode()
+	payload := strings.NewReader(encodedData)
+	authUrl := fmt.Sprintf("%s/%s/oidc/oauth/token", os.Getenv("AUTH_BASE_URL"), os.Getenv("AUTH_REALM"))
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, authUrl, payload)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	var resp TokenResponse
 	if err := s.client.Do(req, &resp); err != nil {
@@ -40,6 +52,7 @@ func (s *AuthService) GenerateToken(ctx context.Context, creds *types.Credential
 
 	if resp.ExpiresIn > 0 {
 		resp.ExpiresAt = time.Now().Add(time.Duration(resp.ExpiresIn) * time.Second)
+		resp.RefreshExpiresAt = time.Now().Add(time.Duration(resp.RefreshExpiresIn) * time.Second)
 	}
 
 	// Atualiza o token no cliente HTTP base
@@ -54,7 +67,9 @@ func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*T
 		"refresh_token": refreshToken,
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, fmt.Sprintf("%s/%soidc/oauth/token/refresh", os.Getenv("AUTH_BASE_URL"), os.Getenv("AUTH_REALM")), payload)
+	authUrl := fmt.Sprintf("%s/%soidc/oauth/token/refresh", os.Getenv("AUTH_BASE_URL"), os.Getenv("AUTH_REALM"))
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, authUrl, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -66,6 +81,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*T
 
 	if resp.ExpiresIn > 0 {
 		resp.ExpiresAt = time.Now().Add(time.Duration(resp.ExpiresIn) * time.Second)
+		resp.RefreshExpiresAt = time.Now().Add(time.Duration(resp.RefreshExpiresIn) * time.Second)
 	}
 
 	// Atualiza o token no cliente HTTP base
@@ -80,7 +96,9 @@ func (s *AuthService) RevokeToken(ctx context.Context) error {
 	}
 
 	payload := map[string]string{"token": s.client.Token}
-	req, err := s.client.NewRequest(ctx, http.MethodPost, fmt.Sprintf("%s/%soidc/oauth/token/revoke", os.Getenv("AUTH_BASE_URL"), os.Getenv("AUTH_REALM")), payload)
+	authUrl := fmt.Sprintf("%s/%soidc/oauth/token/revoke", os.Getenv("AUTH_BASE_URL"), os.Getenv("AUTH_REALM"))
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, authUrl, payload)
 	if err != nil {
 		return err
 	}
