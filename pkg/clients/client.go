@@ -22,9 +22,11 @@ const (
 
 // Client é o motor HTTP principal da SDK.
 type Client struct {
-	HTTPClient *http.Client
-	BaseURL    string
-	Token      string
+	HTTPClient  *http.Client
+	AuthBaseURL string
+	Realm       string
+	BaseURL     string
+	Token       string
 
 	// TokenProvider é chamado quando uma requisição autenticada é feita
 	// mas o Token atual está vazio. Deve ser configurado pelo orquestrador.

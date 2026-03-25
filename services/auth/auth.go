@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 // AuthService gerencia autenticação e geração de tokens.
 type AuthService struct {
 	client *clients.Client
+	realm  string
 }
 
 // NewAuthService cria uma nova instância do serviço de autenticação.
@@ -37,7 +37,7 @@ func (s *AuthService) GenerateToken(ctx context.Context, creds *types.Credential
 
 	encodedData := data.Encode()
 	payload := strings.NewReader(encodedData)
-	authUrl := fmt.Sprintf("%s/%s/oidc/oauth/token", os.Getenv("AUTH_BASE_URL"), os.Getenv("AUTH_REALM"))
+	authUrl := fmt.Sprintf("%s/%s/oidc/oauth/token", s.client.AuthBaseURL, s.client.Realm)
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, authUrl, payload)
 	if err != nil {
@@ -67,7 +67,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*T
 		"refresh_token": refreshToken,
 	}
 
-	authUrl := fmt.Sprintf("%s/%soidc/oauth/token/refresh", os.Getenv("AUTH_BASE_URL"), os.Getenv("AUTH_REALM"))
+	authUrl := fmt.Sprintf("%s/%s/oidc/oauth/token/refresh", s.client.AuthBaseURL, s.client.Realm)
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, authUrl, payload)
 	if err != nil {
@@ -96,7 +96,7 @@ func (s *AuthService) RevokeToken(ctx context.Context) error {
 	}
 
 	payload := map[string]string{"token": s.client.Token}
-	authUrl := fmt.Sprintf("%s/%soidc/oauth/token/revoke", os.Getenv("AUTH_BASE_URL"), os.Getenv("AUTH_REALM"))
+	authUrl := fmt.Sprintf("%s/%s/oidc/oauth/token/revoke", s.client.AuthBaseURL, s.client.Realm)
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, authUrl, payload)
 	if err != nil {
