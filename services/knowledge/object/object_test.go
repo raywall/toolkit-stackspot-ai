@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raywall/toolkit-stackspot-ai/internal/knowledge/object"
 	"github.com/raywall/toolkit-stackspot-ai/pkg/clients"
 	"github.com/raywall/toolkit-stackspot-ai/pkg/types"
+	"github.com/raywall/toolkit-stackspot-ai/services/knowledge/object"
 )
 
 func newTestClient(t *testing.T, handler http.Handler) *clients.Client {

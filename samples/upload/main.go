@@ -7,10 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/raywall/toolkit-stackspot-ai/internal/auth"
-	"github.com/raywall/toolkit-stackspot-ai/internal/knowledge/object"
 	"github.com/raywall/toolkit-stackspot-ai/pkg/clients"
 	"github.com/raywall/toolkit-stackspot-ai/pkg/types"
+	"github.com/raywall/toolkit-stackspot-ai/services/auth"
+	"github.com/raywall/toolkit-stackspot-ai/services/knowledge/object"
 )
 
 func main() {

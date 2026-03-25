@@ -6,10 +6,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/raywall/toolkit-stackspot-ai/internal/agent"
-	"github.com/raywall/toolkit-stackspot-ai/internal/auth"
 	"github.com/raywall/toolkit-stackspot-ai/pkg/clients"
 	"github.com/raywall/toolkit-stackspot-ai/pkg/types"
+	"github.com/raywall/toolkit-stackspot-ai/services/agent"
+	"github.com/raywall/toolkit-stackspot-ai/services/auth"
 )
 
 func main() {
