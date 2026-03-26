@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/raywall/toolkit-stackspot-ai/pkg/clients"
+	"github.com/raywall/toolkit-stackspot-ai/pkg/config"
 	"github.com/raywall/toolkit-stackspot-ai/pkg/types"
 	"github.com/raywall/toolkit-stackspot-ai/services/agent"
 )
@@ -53,7 +54,7 @@ func TestAgentService_List(t *testing.T) {
 	}
 
 	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/agents" && r.Method == http.MethodGet {
+		if r.URL.Path == config.AgentsBasePath.String() && r.Method == http.MethodGet {
 			writeJSON(w, http.StatusOK, page)
 			return
 		}
@@ -78,7 +79,7 @@ func TestAgentService_Create(t *testing.T) {
 	created := makeAgent("ag-new", "Meu Agente")
 
 	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/agents" && r.Method == http.MethodPost {
+		if r.URL.Path == config.AgentsBasePath.String() && r.Method == http.MethodPost {
 			writeJSON(w, http.StatusCreated, created)
 			return
 		}
@@ -105,7 +106,7 @@ func TestAgentService_Update(t *testing.T) {
 	updated := makeAgent("ag-1", "Agente Atualizado")
 
 	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/agents/ag-1" && r.Method == http.MethodPatch {
+		if r.URL.Path == config.AgentsBasePath.Join("ag-1") && r.Method == http.MethodPatch {
 			writeJSON(w, http.StatusOK, updated)
 			return
 		}
@@ -129,7 +130,7 @@ func TestAgentService_Delete(t *testing.T) {
 	deleted := false
 
 	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/agents/ag-1" && r.Method == http.MethodDelete {
+		if r.URL.Path == config.AgentsBasePath.Join("ag-1") && r.Method == http.MethodDelete {
 			deleted = true
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -163,7 +164,7 @@ func TestAgentService_Execute(t *testing.T) {
 	}
 
 	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/agents/ag-1/execute" && r.Method == http.MethodPost {
+		if r.URL.Path == config.AgentsBasePath.Join("ag-1", "execute") && r.Method == http.MethodPost {
 			writeJSON(w, http.StatusOK, execResp)
 			return
 		}
@@ -201,7 +202,7 @@ func TestAgentService_ExecuteStream(t *testing.T) {
 		"data: [DONE]\n\n"
 
 	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/agents/ag-1/execute" && r.Method == http.MethodPost {
+		if r.URL.Path == config.AgentsBasePath.Join("ag-1", "execute") && r.Method == http.MethodPost {
 			w.Header().Set("Content-Type", "text/event-stream")
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprint(w, sseBody)

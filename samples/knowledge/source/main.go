@@ -15,7 +15,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	client := clients.New(clients.WithBaseURL(os.Getenv("API_BASE_URL")))
+	client := clients.New()
 	client.TokenProvider = func(ctx context.Context) error {
 		_, err := auth.NewAuthService(client).GenerateToken(ctx, &types.Credentials{
 			ClientID:     os.Getenv("API_CLIENT_ID"),

@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/raywall/toolkit-stackspot-ai/pkg/types"
@@ -80,3 +81,24 @@ type StreamEvent struct {
 
 // StreamHandler é a função de callback chamada para cada StreamEvent.
 type StreamHandler func(event StreamEvent) error
+
+// ToMap convert uma lista de parametros em um mapa de strings
+func (p *ListAgentsParams) ToMap() map[string]string {
+	var values = make(map[string]string)
+	if p.Page > 0 {
+		values["page"] = strconv.Itoa(p.Page)
+	}
+	if p.PageSize > 0 {
+		values["page_size"] = strconv.Itoa(p.PageSize)
+	}
+	if p.Model != "" {
+		values["model"] = string(p.Model)
+	}
+	if p.Tag != "" {
+		values["tag"] = p.Tag
+	}
+	if p.Search != "" {
+		values["search"] = p.Search
+	}
+	return values
+}

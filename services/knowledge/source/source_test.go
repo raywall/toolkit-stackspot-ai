@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/raywall/toolkit-stackspot-ai/pkg/clients"
+	"github.com/raywall/toolkit-stackspot-ai/pkg/config"
 	"github.com/raywall/toolkit-stackspot-ai/pkg/types"
 	"github.com/raywall/toolkit-stackspot-ai/services/knowledge/source"
 )
@@ -51,7 +52,7 @@ func TestKnowledgeSourceService_List(t *testing.T) {
 	}
 
 	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/knowledge-sources" && r.Method == http.MethodGet {
+		if r.URL.Path == config.KnowledgeSourcesBasePathV1.String() && r.Method == http.MethodGet {
 			writeJSON(w, http.StatusOK, page)
 			return
 		}
@@ -75,7 +76,7 @@ func TestKnowledgeSourceService_Create(t *testing.T) {
 	created := makeKS("ks-new", "Nova Fonte")
 
 	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/knowledge-sources" && r.Method == http.MethodPost {
+		if r.URL.Path == config.KnowledgeSourcesBasePathV1.String() && r.Method == http.MethodPost {
 			var req source.CreateKnowledgeSourceRequest
 			_ = json.NewDecoder(r.Body).Decode(&req)
 			if req.Name == "" {
@@ -106,7 +107,7 @@ func TestKnowledgeSourceService_Update(t *testing.T) {
 	updated := makeKS("ks-1", "Nome Atualizado")
 
 	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/knowledge-sources/ks-1" && r.Method == http.MethodPatch {
+		if r.URL.Path == config.KnowledgeSourcesBasePathV2.Join("ks-1") && r.Method == http.MethodPatch {
 			writeJSON(w, http.StatusOK, updated)
 			return
 		}

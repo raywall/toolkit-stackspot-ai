@@ -6,15 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/raywall/toolkit-stackspot-ai/pkg/clients"
+	"github.com/raywall/toolkit-stackspot-ai/pkg/config"
 	"github.com/raywall/toolkit-stackspot-ai/pkg/types"
 )
-
-const agentsBasePath = "/agents"
 
 // AgentService gerencia as operações de Agentes.
 type AgentService struct {
@@ -28,12 +25,9 @@ func NewAgentService(c *clients.Client) *AgentService {
 
 // List retorna uma página de Agentes de acordo com os parâmetros fornecidos.
 func (s *AgentService) List(ctx context.Context, params *ListAgentsParams) (*types.Page[types.Agent], error) {
-	path := agentsBasePath
-	if params != nil {
-		path += "?" + encodeAgentParams(params)
-	}
-
 	var page types.Page[types.Agent]
+	path := config.AgentsBasePath.WithQuery(params.ToMap())
+
 	if err := s.client.DoAuthenticated(ctx, http.MethodGet, path, nil, &page); err != nil {
 		return nil, err
 	}
@@ -46,8 +40,9 @@ func (s *AgentService) Get(ctx context.Context, id string) (*types.Agent, error)
 		return nil, &clients.Error{Code: clients.ErrCodeBadRequest, Message: "id do agente não pode ser vazio"}
 	}
 
-	path := fmt.Sprintf("%s/%s", agentsBasePath, id)
 	var agent types.Agent
+	path := config.AgentsBasePath.Join(id)
+
 	if err := s.client.DoAuthenticated(ctx, http.MethodGet, path, nil, &agent); err != nil {
 		return nil, err
 	}
@@ -67,7 +62,7 @@ func (s *AgentService) Create(ctx context.Context, req *CreateAgentRequest) (*ty
 	}
 
 	var agent types.Agent
-	if err := s.client.DoAuthenticated(ctx, http.MethodPost, agentsBasePath, req, &agent); err != nil {
+	if err := s.client.DoAuthenticated(ctx, http.MethodPost, config.AgentsBasePath.String(), req, &agent); err != nil {
 		return nil, err
 	}
 	return &agent, nil
@@ -82,8 +77,9 @@ func (s *AgentService) Update(ctx context.Context, id string, req *UpdateAgentRe
 		return nil, &clients.Error{Code: clients.ErrCodeBadRequest, Message: "request não pode ser nil"}
 	}
 
-	path := fmt.Sprintf("%s/%s", agentsBasePath, id)
 	var agent types.Agent
+	path := config.AgentsBasePath.Join(id)
+
 	if err := s.client.DoAuthenticated(ctx, http.MethodPatch, path, req, &agent); err != nil {
 		return nil, err
 	}
@@ -96,7 +92,7 @@ func (s *AgentService) Delete(ctx context.Context, id string) error {
 		return &clients.Error{Code: clients.ErrCodeBadRequest, Message: "id do agente não pode ser vazio"}
 	}
 
-	path := fmt.Sprintf("%s/%s", agentsBasePath, id)
+	path := config.AgentsBasePath.Join(id)
 	return s.client.DoAuthenticated(ctx, http.MethodDelete, path, nil, nil)
 }
 
@@ -112,10 +108,10 @@ func (s *AgentService) Execute(ctx context.Context, id string, req *ExecuteAgent
 		return nil, &clients.Error{Code: clients.ErrCodeBadRequest, Message: "campo 'input' é obrigatório"}
 	}
 
-	req.Stream = false // garante modo não-streaming para esta função
-	path := fmt.Sprintf("%s/%s/execute", agentsBasePath, id)
-
 	var resp ExecuteAgentResponse
+	req.Stream = false // garante modo não-streaming para esta função
+
+	path := config.AgentsBasePath.Join(id, "execute")
 	if err := s.client.DoAuthenticated(ctx, http.MethodPost, path, req, &resp); err != nil {
 		return nil, err
 	}
@@ -136,14 +132,12 @@ func (s *AgentService) ExecuteStream(ctx context.Context, id string, req *Execut
 	if handler == nil {
 		return &clients.Error{Code: clients.ErrCodeBadRequest, Message: "handler não pode ser nil"}
 	}
-
 	if err := s.client.EnsureAuthenticated(ctx); err != nil {
 		return err
 	}
 
 	req.Stream = true
-	path := fmt.Sprintf("%s/%s/execute", agentsBasePath, id)
-
+	path := config.AgentsBasePath.Join(id, "execute")
 	httpReq, err := s.client.NewRequest(ctx, http.MethodPost, path, req)
 	if err != nil {
 		return err
@@ -192,28 +186,4 @@ func (s *AgentService) ExecuteStream(ctx context.Context, id string, req *Execut
 	}
 
 	return scanner.Err()
-}
-
-// encodeAgentParams converte ListAgentsParams em query string.
-func encodeAgentParams(p *ListAgentsParams) string {
-	v := url.Values{}
-	if p.Page > 0 {
-		v.Set("page", strconv.Itoa(p.Page))
-	}
-	if p.PageSize > 0 {
-		v.Set("page_size", strconv.Itoa(p.PageSize))
-	}
-	if p.Status != "" {
-		v.Set("status", string(p.Status))
-	}
-	if p.Model != "" {
-		v.Set("model", string(p.Model))
-	}
-	if p.Tag != "" {
-		v.Set("tag", p.Tag)
-	}
-	if p.Search != "" {
-		v.Set("search", p.Search)
-	}
-	return v.Encode()
 }

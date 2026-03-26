@@ -16,7 +16,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client := clients.New(clients.WithBaseURL(os.Getenv("API_BASE_URL")))
+	client := clients.New()
 	authSvc := auth.NewAuthService(client)
 
 	creds := &types.Credentials{

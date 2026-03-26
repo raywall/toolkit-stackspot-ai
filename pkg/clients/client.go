@@ -10,11 +10,12 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/raywall/toolkit-stackspot-ai/pkg/config"
 )
 
 const (
 	defaultTimeout    = 30 * time.Second
-	defaultBaseURL    = "https://api.agentsdk.io/v1"
 	headerAuthToken   = "Authorization"
 	headerContentType = "Content-Type"
 	contentTypeJSON   = "application/json"
@@ -24,8 +25,8 @@ const (
 type Client struct {
 	HTTPClient  *http.Client
 	AuthBaseURL string
-	Realm       string
 	BaseURL     string
+	Realm       string
 	Token       string
 
 	// TokenProvider é chamado quando uma requisição autenticada é feita
@@ -60,8 +61,9 @@ func WithToken(token string) Option {
 // New cria um novo Client HTTP base.
 func New(opts ...Option) *Client {
 	c := &Client{
-		HTTPClient: &http.Client{Timeout: defaultTimeout},
-		BaseURL:    defaultBaseURL,
+		HTTPClient:  &http.Client{Timeout: defaultTimeout},
+		AuthBaseURL: config.AuthBaseUrl.String(),
+		BaseURL:     config.ApiBaseUrl.String(),
 	}
 
 	for _, opt := range opts {

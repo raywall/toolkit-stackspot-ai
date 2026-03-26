@@ -1,6 +1,8 @@
 package source
 
 import (
+	"strconv"
+
 	"github.com/raywall/toolkit-stackspot-ai/pkg/types"
 )
 
@@ -32,4 +34,28 @@ type ListKnowledgeSourcesParams struct {
 	Status types.KnowledgeSourceStatus `url:"status,omitempty"`
 	Tag    string                      `url:"tag,omitempty"`
 	Search string                      `url:"search,omitempty"`
+}
+
+// ToMap convert uma lista de parametros em um mapa de strings
+func (p *ListKnowledgeSourcesParams) ToMap() map[string]string {
+	var values = make(map[string]string)
+	if p.Page > 0 {
+		values["page"] = strconv.Itoa(p.Page)
+	}
+	if p.PageSize > 0 {
+		values["page_size"] = strconv.Itoa(p.PageSize)
+	}
+	if p.Type != "" {
+		values["type"] = string(p.Type)
+	}
+	if p.Status != "" {
+		values["status"] = string(p.Status)
+	}
+	if p.Tag != "" {
+		values["tag"] = p.Tag
+	}
+	if p.Search != "" {
+		values["search"] = p.Search
+	}
+	return values
 }
